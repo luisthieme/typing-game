@@ -4,7 +4,8 @@ import randomWords from 'random-words';
 class TypingArea extends Component {
 
     state = {
-        newarr: [],
+        empty: [],
+        newarr: ["Specify Number Of Words To Start"],
         arrayWords: [],
         words: "",
         value: 0,
@@ -15,8 +16,14 @@ class TypingArea extends Component {
         wpm: 0,
     }
 
-    test(value = 10) {
+    test(value) {
         //this.setState({words: randomWords({exactly: Number(value), join:" "})})
+        if (value >= 50) {
+            value = 50
+        }
+        else if (value <= 0) {
+            value = 1
+        }
         let words = randomWords({exactly: Number(value), join: " "})
         //this.setState({arrayWords: words.split("")}) why tf does this not work properly although its the recommended solution
         this.state.arrayWords = words.split("")
@@ -48,18 +55,28 @@ class TypingArea extends Component {
     getWPM() {
         if (localStorage.getItem("wpm") === null) {
             localStorage.setItem("wpm", 0)
-            localStorage.setItem("divider", 0)
-            localStorage.setItem("count", 0)
+            localStorage.setItem("divider", 1)
+            localStorage.setItem("count", Math.floor(this.state.value / (this.state.timer / 60)))
+            let divider = Number(localStorage.getItem("divider"))
+            let count = Number(localStorage.getItem("count"))
+            localStorage.setItem("wpm", Math.floor(count / divider))
         }
         else {
             let divider = Number(localStorage.getItem("divider"))
             let count = Number(localStorage.getItem("count"))
 
             localStorage.setItem("divider", divider + 1)
-            localStorage.setItem("count", count + this.state.value / (this.state.timer / 60))
+            localStorage.setItem("count", Math.floor(count + this.state.value / (this.state.timer / 60)))
             localStorage.setItem("wpm", Math.floor(count / divider))
 
         }
+    }
+
+    clearStorage() {
+        localStorage.removeItem("wpm")
+        localStorage.removeItem("count")
+        localStorage.removeItem("divider")
+        window.location.reload(false)
     }
 
     compare() {
@@ -105,6 +122,7 @@ class TypingArea extends Component {
     }
 
     render() {
+        console.log(this.state.newarr)
         return (
             <div className="inner-container">
                 <div className='typing-area-container'>
@@ -117,9 +135,12 @@ class TypingArea extends Component {
                     <div className='center'>
                         <p>WPM: {localStorage.getItem("wpm")}</p>
                         <button className="button" onClick={() => this.submit()}>START</button>
-                        <input className="input-number" type="number" id='textLength' onChange={(e) => this.test(e.target.value)}></input>
+                        <input className="input-number" type="number" id='textLength' min={1} max={4} onChange={(e) => this.test(e.target.value)}></input>
                         <button className="button" onClick={() => window.location.reload(false)}>STOP</button>
                         <p>TIMER: {this.state.timer}</p>
+                    </div>
+                    <div className='center'>
+                        <button className='clear' onClick={() => this.clearStorage()}>CLEAR  STORAGE</button>
                     </div>
                 </div>
 
